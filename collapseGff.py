@@ -40,7 +40,7 @@ class Feature:
 
     def print(self, printProts):
         self.row[5] = str(self.count)
-        if self.row[2] != "cds":
+        if self.row[2].lower() != "cds":
             if self.alScore == 0:
                 self.alScore = "0"
             self.row[8] += f'al_score={self.alScore};'
@@ -56,7 +56,7 @@ class Feature:
         if self.row[8] == "":
             self.row[8] = "."
 
-        print("\t".join(self.row))
+        return "\t".join(self.row)
 
 
 class Codon():
@@ -84,15 +84,26 @@ def loadData(inputFile):
     return features
 
 
-def printCollapsed(features, printProts):
+def printCollapsed(features, printProts, outputFile=None):
+    if outputFile:
+        output = open(outputFile, "w")
     for f in features.values():
-        f.print(printProts)
+        if outputFile:
+            output.write(f.print(printProts) + "\n")
+        else:
+            print(f.print(printProts))
+    if outputFile:
+        output.close()
+
+
+def collapse(inputFile, printProts=True, outputFile=None):
+    features = loadData(inputFile)
+    printCollapsed(features, printProts, outputFile)
 
 
 def main():
     args = parseCmd()
-    features = loadData(args.input)
-    printCollapsed(features, not args.dontPrintProteins)
+    collapse(args.input, not args.dontPrintProteins)
 
 
 def parseCmd():
