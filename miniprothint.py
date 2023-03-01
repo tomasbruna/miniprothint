@@ -56,6 +56,7 @@ def setup(args):
 
 def processMiniprotOutput(miniprot):
     processIntrons(miniprot)
+    processStops(miniprot)
     callScript('print_high_confidence.py',
                f'{workDir}/miniprothint.gff > {workDir}/hc.gff')
 
@@ -68,6 +69,18 @@ def processIntrons(miniprot):
                f'{intronsAll.name} --intronCoverage 0 --intronAlignment 0.1 '
                f'--addAllSpliceSites > {introns01.name}')
     collapseGff.collapse(introns01.name, outputFile=f'{workDir}/miniprothint.gff')
+
+
+def processStops(miniprot):
+    stopsAll = temp('stopsAllEnd', '.gff')
+    systemCall(f'grep stop_codon {miniprot} | grep proteinEnd=1 > {stopsAll.name}')
+    stopsPositive = temp('stopsPositive', '.gff')
+    callScript('print_high_confidence.py',
+               f'{stopsAll.name} --stopCoverage 0 --stopAlignment 0.01 '
+               f'--addAllSpliceSites > {stopsPositive.name}')
+    collapseGff.collapse(stopsPositive.name,
+                         outputFile=f'{workDir}/miniprothint.gff',
+                         append=True)
 
 
 def main():

@@ -84,9 +84,13 @@ def loadData(inputFile):
     return features
 
 
-def printCollapsed(features, printProts, outputFile=None):
+def printCollapsed(features, printProts, outputFile=None, append=False):
     if outputFile:
-        output = open(outputFile, "w")
+        if append:
+            output = open(outputFile, "a")
+        else:
+            output = open(outputFile, "w")
+
     for f in features.values():
         if outputFile:
             output.write(f.print(printProts) + "\n")
@@ -96,9 +100,9 @@ def printCollapsed(features, printProts, outputFile=None):
         output.close()
 
 
-def collapse(inputFile, printProts=True, outputFile=None):
+def collapse(inputFile, printProts=True, outputFile=None, append=False):
     features = loadData(inputFile)
-    printCollapsed(features, printProts, outputFile)
+    printCollapsed(features, printProts, outputFile, append)
 
 
 def main():
