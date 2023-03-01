@@ -56,6 +56,7 @@ def setup(args):
 
 def processMiniprotOutput(miniprot):
     processIntrons(miniprot)
+    processStarts(miniprot)
     processStops(miniprot)
     callScript('print_high_confidence.py',
                f'{workDir}/miniprothint.gff > {workDir}/hc.gff')
@@ -77,10 +78,43 @@ def processStops(miniprot):
     stopsPositive = temp('stopsPositive', '.gff')
     callScript('print_high_confidence.py',
                f'{stopsAll.name} --stopCoverage 0 --stopAlignment 0.01 '
-               f'--addAllSpliceSites > {stopsPositive.name}')
+               f'> {stopsPositive.name}')
     collapseGff.collapse(stopsPositive.name,
                          outputFile=f'{workDir}/miniprothint.gff',
                          append=True)
+
+
+def processStarts(miniprot):
+    startsAll = temp('startsAll', '.gff')
+    systemCall(f'grep start_codon {miniprot} > {startsAll.name}')
+    startsPositive = temp('startsPositive', '.gff')
+    callScript('print_high_confidence.py',
+               f'{startsAll.name} --startCoverage 0 --startAlignment 0.01 '
+               f'> {startsPositive.name}')
+    startsCollapsed = temp('startsCollapsed', '.gff')
+    startsCollapsedS = temp('startsCollapsedSorted', '.gff')
+    collapseGff.collapse(startsPositive.name, outputFile=startsCollapsed.name)
+    systemCall(f'sort -k1,1 -k4,4n -k5,5n {startsCollapsed.name} > '
+               f'{startsCollapsedS.name}')
+
+    cds = temp('cds', '.gff')
+    cdsC = temp('cdsCollapsed', '.gff')
+    cdsSupported = temp('cdsCollapsed', '.gff')
+    cdsSupportedS = temp('cdsCollapsed', '.gff')
+    systemCall(f'grep CDS {miniprot} > {cds.name}')
+    collapseGff.collapse(cds.name, printProts=False, outputFile=cdsC.name)
+
+    # This is crucial as there is so much noise in the CDS alignments.
+    # Without this step, almost no starts are left with a larger database.
+    callScript('cds_with_upstream_support.py',
+               f'{cdsC.name} {startsCollapsedS.name} '
+               f'{workDir}/miniprothint.gff > {cdsSupported.name}')
+    systemCall(f'sort -k1,1 -k4,4n -k5,5n {cdsSupported.name} > '
+               f'{cdsSupportedS.name}')
+
+    callScript('count_cds_overlaps.py',
+               f'{startsCollapsedS.name} {cdsSupportedS.name} >> '
+               f'{workDir}/miniprothint.gff')
 
 
 def main():
