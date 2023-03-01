@@ -16,13 +16,18 @@ import os
 
 
 tempFiles = []
-workDir = "."
+workDir = ''
+binDir = ''
 
 
 def systemCall(cmd):
     if subprocess.call(["bash", "-c", cmd]) != 0:
         sys.exit('[' + time.ctime() + '] error: exited due to an ' +
                  'error in command: ' + cmd)
+
+
+def callScript(name, args):
+    systemCall(binDir + '/' + name + ' ' + args)
 
 
 def temp(prefix, suffix):
@@ -42,20 +47,33 @@ def cleanup():
 
 def setup(args):
     global workDir
+    global binDir
     workDir = args.workdir
     if not os.path.isdir(workDir):
         os.mkdir(workDir)
+    binDir = os.path.abspath(os.path.dirname(__file__))
 
 
-def processMiniprotoutput(miniprot):
-    collapsed = temp("collapsed", ".gff")
-    collapseGff.collapse(miniprot, outputFile=collapsed.name)
+def processMiniprotOutput(miniprot):
+    processIntrons(miniprot)
+    callScript('print_high_confidence.py',
+               f'{workDir}/miniprothint.gff > {workDir}/hc.gff')
+
+
+def processIntrons(miniprot):
+    intronsAll = temp('intronsAll', '.gff')
+    systemCall(f'grep intron {miniprot} > {intronsAll.name}')
+    introns01 = temp('introns01', '.gff')
+    callScript('print_high_confidence.py',
+               f'{intronsAll.name} --intronCoverage 0 --intronAlignment 0.1 '
+               f'--addAllSpliceSites > {introns01.name}')
+    collapseGff.collapse(introns01.name, outputFile=f'{workDir}/miniprothint.gff')
 
 
 def main():
     args = parseCmd()
     setup(args)
-    processMiniprotoutput(args.miniprot)
+    processMiniprotOutput(args.miniprot)
     if (not args.nocleanup):
         cleanup()
 
