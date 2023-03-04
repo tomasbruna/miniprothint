@@ -54,13 +54,16 @@ def setup(args):
     binDir = os.path.abspath(os.path.dirname(__file__))
 
 
-def processMiniprotOutput(miniprot):
+def processMiniprotOutput(miniprot, ignoreCoverage):
     processIntrons(miniprot)
     processStarts(miniprot)
     processStops(miniprot)
     callScript('print_high_confidence.py',
-               f'{workDir}/miniprothint.gff > {workDir}/hc.gff')
-
+                   f'{workDir}/miniprothint.gff > {workDir}/hc.gff')
+    # if hc.gff is empty and ignoreCoverage is set, then run again with coverage thresholds set to 1
+    if ignoreCoverage and os.stat(f'{workDir}/hc.gff').st_size == 0:
+        callScript('print_high_confidence.py',
+                     f'{workDir}/miniprothint.gff --intronCoverage 1 --stopCoverage 1 --startCoverage 1 > {workDir}/hc.gff')
 
 def processIntrons(miniprot):
     intronsAll = temp('intronsAll', '.gff')
@@ -120,7 +123,7 @@ def processStarts(miniprot):
 def main():
     args = parseCmd()
     setup(args)
-    processMiniprotOutput(args.miniprot)
+    processMiniprotOutput(args.miniprot, args.ignoreCoverage)
     if (not args.nocleanup):
         cleanup()
 
@@ -140,6 +143,9 @@ def parseCmd():
 
     parser.add_argument('--nocleanup', action='store_true',
                         help='Keep all the temporary files.')
+
+    parser.add_argument('--ignoreCoverage', action='store_true', default=False,
+                        help='Add hints to hc.gff no matter the coverage if otherwise hc.gff is empty.')
 
     return parser.parse_args()
 
