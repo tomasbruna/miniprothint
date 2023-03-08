@@ -10,6 +10,8 @@ We recommend running [miniprot](https://github.com/lh3/miniprot) and [miniprot b
     miniprot_boundary_scorer -o miniprot_parsed.gff -s blosum62.csv < miniprot.aln
     miniprothint.py miniprot_parsed.gff --workdir miniprothint
 
+**Coming soon**
+
 However with a protein fasta file on input, miniprothint can take care of running [miniprot](https://github.com/lh3/miniprot) and [miniprot boundary scorer](https://github.com/tomasbruna/miniprot-boundary-scorer):
 
     miniprothint.py --genome genome.fasta --proteins proteins.fasta --workdir miniprothint
