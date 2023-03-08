@@ -12,4 +12,4 @@ To check the results, use for example:
     diff <(sort reference/miniprothint.gff) <(sort miniprothint/miniprothint.gff)
     diff <(sort reference/hc.gff) <(sort reference/hc.gff)
 
-The files `inputs/genome.fasta`, `inputs/proteins.fasta`, and `inputs/miniprot.aln` can be used to test the [alternative modes](https://github.com/tomasbruna/miniprothint#usage) of miniprothint execution.
+The files `inputs/genome.fasta` and `inputs/proteins.fasta` can be used to test the [alternative modes](https://github.com/tomasbruna/miniprothint#usage) of miniprothint execution.
