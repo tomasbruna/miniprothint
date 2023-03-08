@@ -174,8 +174,7 @@ def parseCmd():
 
     parser.add_argument('--ignoreCoverage', action='store_true', default=False,
                         help='Add hints to hc.gff no matter the coverage if \
-        the more than 80%% of introns with high alignment score have coverage\
-        = 1.')
+        more than 80%% of introns with high alignment score have coverage=1.')
 
     return parser.parse_args()
 
