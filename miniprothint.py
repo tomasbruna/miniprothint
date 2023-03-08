@@ -58,12 +58,17 @@ def processMiniprotOutput(miniprot, ignoreCoverage):
     processIntrons(miniprot)
     processStarts(miniprot)
     processStops(miniprot)
-    callScript('print_high_confidence.py',
-                   f'{workDir}/miniprothint.gff > {workDir}/hc.gff')
-    # if hc.gff is empty and ignoreCoverage is set, then run again with coverage thresholds set to 1
-    if ignoreCoverage and os.stat(f'{workDir}/hc.gff').st_size == 0:
+
+    # if reliable introns have mostly coverage 1 and ignoreCoverage is set,
+    # then run again with coverage thresholds set to 1
+    if ignoreCoverage and hasLowCoverage():
         callScript('print_high_confidence.py',
-                     f'{workDir}/miniprothint.gff --intronCoverage 1 --stopCoverage 1 --startCoverage 1 > {workDir}/hc.gff')
+                   f'{workDir}/miniprothint.gff --intronCoverage 1 '
+                   f'--stopCoverage 1 --startCoverage 1 > {workDir}/hc.gff')
+    else:
+        callScript('print_high_confidence.py',
+                   f'{workDir}/miniprothint.gff > {workDir}/hc.gff')
+
 
 def processIntrons(miniprot):
     intronsAll = temp('intronsAll', '.gff')
@@ -120,6 +125,29 @@ def processStarts(miniprot):
                f'{workDir}/miniprothint.gff')
 
 
+def hasLowCoverage():
+    highAlIntrons = temp('highAlIntrons', '.gff')
+    callScript('print_high_confidence.py',
+               f'{workDir}/miniprothint.gff --intronCoverage 1 > '
+               f'{workDir}/highAlIntrons.gff > {highAlIntrons.name}')
+    with open(highAlIntrons.name) as introns:
+        overall, cov1 = 0, 0
+        for line in introns:
+            row = line.split("\t")
+            if row[2].lower() != "intron":
+                continue
+            overall += 1
+            if row[5] == "1":
+                cov1 += 1
+    if cov1 / overall > 0.8:
+        sys.stderr.write("info: Low coverage detected, coverage will be "
+                         "ignored in the high-confidence set.\n")
+        return True
+    sys.stderr.write("warning: Coverage appears to be high, --ignoreCoverage "
+                     "flag will be ignored \n")
+    return False
+
+
 def main():
     args = parseCmd()
     setup(args)
@@ -145,7 +173,9 @@ def parseCmd():
                         help='Keep all the temporary files.')
 
     parser.add_argument('--ignoreCoverage', action='store_true', default=False,
-                        help='Add hints to hc.gff no matter the coverage if otherwise hc.gff is empty.')
+                        help='Add hints to hc.gff no matter the coverage if \
+        the more than 80%% of introns with high alignment score have coverage\
+        = 1.')
 
     return parser.parse_args()
 
