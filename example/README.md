@@ -2,7 +2,7 @@
 
 To run ProtHint, use the following command
 
-    ../bin/prothint.py inputs/miniprot_parsed.gff  --workdir miniprothint
+    ../miniprothint.py inputs/miniprot_parsed.gff  --workdir miniprothint
 
 The results in the `miniprothint` folder should match the contents of the
 `reference` folder. Note that the order of hints in gff files might differ.
