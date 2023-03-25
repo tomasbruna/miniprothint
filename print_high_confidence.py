@@ -42,6 +42,8 @@ class Filter:
             return self.__stop()
         elif (row[2].lower() == "start_codon"):
             return self.__start()
+        elif (row[2].lower() == "cds"):
+            return self.__CDS()
         else:
             return True
 
@@ -63,6 +65,13 @@ class Filter:
             if spliceSites is not None and spliceSites.lower() != "gt_ag":
                 if not self.args.addGCAG or spliceSites.lower() != "gc_ag":
                     return False
+
+        ReScore = extractFeature(self.row[8], "ReScore")
+        LeScore = extractFeature(self.row[8], "LeScore")
+        if ReScore is not None and LeScore is not None:
+            if float(ReScore) < self.args.minExonScore or \
+               float(LeScore) < self.args.minExonScore:
+                return False
 
         if (self.coverage >= self.coverageThreshold and
            self.al_score >= self.args.intronAlignment):
@@ -104,6 +113,13 @@ class Filter:
             return True
 
         return False
+
+    def __CDS(self):
+        eScore = extractFeature(self.row[8], "eScore")
+        if eScore is not None:
+            if float(eScore) < self.args.minExonScore:
+                return False
+        return True
 
 
 def printHighConfidence(args):
@@ -151,6 +167,11 @@ def parseCmd():
     parser.add_argument('--intronAlignment', type=float,
                         help='Intron alignment score threshold. Print all introns \
                         with al_score >= intronAlignment. Default = 0.25.', default=0.25)
+    parser.add_argument('--minExonScore', type=float,
+                        help='Exon score threshold. Print all introns with \
+                        LeScore >= minExonScore and ReScore >= minExonScore. \
+                        Print all exons with eScore > minExonScore. Ignore if \
+                        the fields do not exist. Default = 25.', default=25)
     parser.add_argument('--startOverlap', type=int,
                         help='Maximum alowed CDS overlap of a start. Print all starts \
                         with CDS overlap <= startOverlap. Default = 0', default=0)
