@@ -76,7 +76,7 @@ def processIntrons(miniprot):
     introns01 = temp('introns01', '.gff')
     callScript('print_high_confidence.py',
                f'{intronsAll.name} --intronCoverage 0 --intronAlignment 0.1 '
-               f'--addAllSpliceSites > {introns01.name}')
+               f'--minExonScore 25 --addAllSpliceSites > {introns01.name}')
     collapseGff.collapse(introns01.name, outputFile=f'{workDir}/miniprothint.gff')
 
 
