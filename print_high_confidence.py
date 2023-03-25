@@ -87,6 +87,11 @@ class Filter:
         if (self.al_score is None):
             self.al_score = 1
 
+        eScore = extractFeature(self.row[8], "eScore")
+        if eScore is not None:
+            if float(eScore) < self.args.minExonScore:
+                return False
+
         if (self.coverage >= coverageThreshold and
            self.al_score >= self.args.stopAlignment):
             return True
@@ -106,6 +111,11 @@ class Filter:
 
         if (self.al_score is None):
             self.al_score = 1
+
+        eScore = extractFeature(self.row[8], "eScore")
+        if eScore is not None:
+            if float(eScore) < self.args.minExonScore:
+                return False
 
         if (self.coverage >= coverageThreshold and
            self.al_score >= self.args.startAlignment and
@@ -170,8 +180,8 @@ def parseCmd():
     parser.add_argument('--minExonScore', type=float,
                         help='Exon score threshold. Print all introns with \
                         LeScore >= minExonScore and ReScore >= minExonScore. \
-                        Print all exons with eScore > minExonScore. Ignore if \
-                        the fields do not exist. Default = 25.', default=25)
+                        Print all exons, starts, stops with eScore > minExonScore. \
+                        Ignore if the fields do not exist. Default = 25.', default=25)
     parser.add_argument('--startOverlap', type=int,
                         help='Maximum alowed CDS overlap of a start. Print all starts \
                         with CDS overlap <= startOverlap. Default = 0', default=0)

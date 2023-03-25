@@ -92,7 +92,8 @@ def processStops(miniprot):
     stopsPositive = temp('stopsPositive', '.gff')
     callScript('print_high_confidence.py',
                f'{stopsAll.name} --stopCoverage 0 --stopAlignment '
-               f'{MIN_STOP_AL_ALL} > {stopsPositive.name}')
+               f'{MIN_STOP_AL_ALL} --minExonScore {MIN_EXON_SCORE_ALL} '
+               f'> {stopsPositive.name}')
     collapseGff.collapse(stopsPositive.name,
                          outputFile=f'{workDir}/miniprothint.gff',
                          append=True)
@@ -104,7 +105,7 @@ def processStarts(miniprot):
     startsPositive = temp('startsPositive', '.gff')
     callScript('print_high_confidence.py',
                f'{startsAll.name} --startCoverage 0 --startAlignment '
-               f'{MIN_START_AL_ALL} '
+               f'{MIN_START_AL_ALL} --minExonScore {MIN_EXON_SCORE_ALL} '
                f'> {startsPositive.name}')
     startsCollapsed = temp('startsCollapsed', '.gff')
     startsCollapsedS = temp('startsCollapsedSorted', '.gff')
@@ -113,11 +114,14 @@ def processStarts(miniprot):
                f'{startsCollapsedS.name}')
 
     cds = temp('cds', '.gff')
+    cdsF = temp('cdsF', '.gff')
     cdsC = temp('cdsCollapsed', '.gff')
     cdsSupported = temp('cdsCollapsed', '.gff')
     cdsSupportedS = temp('cdsCollapsed', '.gff')
     systemCall(f'grep CDS {miniprot} > {cds.name}')
-    collapseGff.collapse(cds.name, printProts=False, outputFile=cdsC.name)
+    callScript('print_high_confidence.py',
+               f'{cds.name} --minExonScore {MIN_EXON_SCORE_ALL} > {cdsF.name}')
+    collapseGff.collapse(cdsF.name, printProts=False, outputFile=cdsC.name)
 
     # This is crucial as there is so much noise in the CDS alignments.
     # Without this step, almost no starts are left with a larger database.
