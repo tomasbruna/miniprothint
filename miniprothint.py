@@ -19,6 +19,11 @@ tempFiles = []
 workDir = ''
 binDir = ''
 
+MIN_EXON_SCORE_ALL = 25
+MIN_INTRON_AL_ALL = 0.1
+MIN_START_AL_ALL = 0.01
+MIN_STOP_AL_ALL = 0.01
+
 
 def systemCall(cmd):
     if subprocess.call(["bash", "-c", cmd]) != 0:
@@ -75,8 +80,9 @@ def processIntrons(miniprot):
     systemCall(f'grep intron {miniprot} > {intronsAll.name}')
     introns01 = temp('introns01', '.gff')
     callScript('print_high_confidence.py',
-               f'{intronsAll.name} --intronCoverage 0 --intronAlignment 0.1 '
-               f'--minExonScore 25 --addAllSpliceSites > {introns01.name}')
+               f'{intronsAll.name} --intronCoverage 0 --intronAlignment '
+               f'{MIN_INTRON_AL_ALL} --minExonScore {MIN_EXON_SCORE_ALL} '
+               f'--addAllSpliceSites > {introns01.name}')
     collapseGff.collapse(introns01.name, outputFile=f'{workDir}/miniprothint.gff')
 
 
@@ -85,8 +91,8 @@ def processStops(miniprot):
     systemCall(f'grep stop_codon {miniprot} | grep proteinEnd=1 > {stopsAll.name}')
     stopsPositive = temp('stopsPositive', '.gff')
     callScript('print_high_confidence.py',
-               f'{stopsAll.name} --stopCoverage 0 --stopAlignment 0.01 '
-               f'> {stopsPositive.name}')
+               f'{stopsAll.name} --stopCoverage 0 --stopAlignment '
+               f'{MIN_STOP_AL_ALL} > {stopsPositive.name}')
     collapseGff.collapse(stopsPositive.name,
                          outputFile=f'{workDir}/miniprothint.gff',
                          append=True)
@@ -97,7 +103,8 @@ def processStarts(miniprot):
     systemCall(f'grep start_codon {miniprot} > {startsAll.name}')
     startsPositive = temp('startsPositive', '.gff')
     callScript('print_high_confidence.py',
-               f'{startsAll.name} --startCoverage 0 --startAlignment 0.01 '
+               f'{startsAll.name} --startCoverage 0 --startAlignment '
+               f'{MIN_START_AL_ALL} '
                f'> {startsPositive.name}')
     startsCollapsed = temp('startsCollapsed', '.gff')
     startsCollapsedS = temp('startsCollapsedSorted', '.gff')
