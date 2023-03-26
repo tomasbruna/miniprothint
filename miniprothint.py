@@ -74,6 +74,8 @@ def processMiniprotOutput(miniprot, ignoreCoverage):
         callScript('print_high_confidence.py',
                    f'{workDir}/miniprothint.gff > {workDir}/hc.gff')
 
+    callScript('scorer2gtf.py', f'{miniprot} > {workDir}/miniprot.gtf')
+
 
 def processIntrons(miniprot):
     intronsAll = temp('intronsAll', '.gff')
