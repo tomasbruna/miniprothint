@@ -28,7 +28,8 @@ def loadStopCodons(scorerFile):
             proteinEnd = extractAttribute(row, "proteinEnd")
             if proteinEnd == "1":
                 parent = extractAttribute(row, "Parent")
-                validStops.add(parent)
+                prot = extractAttribute(row, "prot")
+                validStops.add(f'{parent}_{prot}')
     return validStops
 
 
@@ -37,10 +38,11 @@ def convert(scorerFile):
     for row in csv.reader(open(scorerFile), delimiter='\t'):
         if row[2] == "mRNA":
             ID = extractAttribute(row, "ID")
+            prot = extractAttribute(row, "prot")
             row[2] = "transcript"
-            row[8] = f'transcript_id "{ID}"; gene_id "{ID}";'
+            row[8] = f'transcript_id "{ID}_{prot}"; gene_id "{ID}_{prot}";'
 
-            if ID in validStops:
+            if f'{ID}_{prot}' in validStops:
                 if row[6] == '+':
                     row[4] = str(int(row[4]) + 3)
                 else:
@@ -48,14 +50,15 @@ def convert(scorerFile):
 
             gene = row.copy()
             gene[2] = "gene"
-            gene[8] = f'gene_id "{ID}";'
+            gene[8] = f'gene_id "{ID}_{prot}";'
             print("\t".join(gene))
             print("\t".join(row))
         elif row[2] == "CDS":
             score = extractAttribute(row, "eScore")
             parent = extractAttribute(row, "Parent")
+            prot = extractAttribute(row, "prot")
             row[5] = score
-            row[8] = f'transcript_id "{parent}"; gene_id "{parent}";'
+            row[8] = f'transcript_id "{parent}_{prot}"; gene_id "{parent}_{prot}";'
             exon = row.copy()
             exon[2] = "exon"
             exon[7] = "."
