@@ -59,10 +59,20 @@ def setup(args):
     binDir = os.path.abspath(os.path.dirname(__file__))
 
 
-def processMiniprotOutput(miniprot, ignoreCoverage):
-    processIntrons(miniprot)
-    processStarts(miniprot)
-    processStops(miniprot)
+def processMiniprotOutput(miniprot, ignoreCoverage, args):
+
+    reps = f'{workDir}/miniprot_representatives.gff'
+    callScript('selectRepresentativeAlignments.py',
+               f'{miniprot} '
+               f'--topNperSeed {args.topNperSeed} '
+               f'--minScoreFraction {args.minScoreFraction} '
+               f'--maxSubFraction {args.maxSubFraction} '
+               f'--minSubCoverage {args.minSubCoverage} '
+               f'> {reps}')
+
+    processIntrons(reps)
+    processStarts(reps)
+    processStops(reps)
 
     # if reliable introns have mostly coverage 1 and ignoreCoverage is set,
     # then run again with coverage thresholds set to 1
@@ -75,6 +85,7 @@ def processMiniprotOutput(miniprot, ignoreCoverage):
                    f'{workDir}/miniprothint.gff > {workDir}/hc.gff')
 
     callScript('scorer2gtf.py', f'{miniprot} > {workDir}/miniprot.gtf')
+    callScript('scorer2gtf.py', f'{reps} > {workDir}/miniprot_representatives.gtf')
 
 
 def processIntrons(miniprot):
@@ -164,7 +175,7 @@ def hasLowCoverage():
 def main():
     args = parseCmd()
     setup(args)
-    processMiniprotOutput(args.miniprot, args.ignoreCoverage)
+    processMiniprotOutput(args.miniprot, args.ignoreCoverage, args)
     if (not args.nocleanup):
         cleanup()
 
@@ -188,6 +199,29 @@ def parseCmd():
     parser.add_argument('--ignoreCoverage', action='store_true', default=False,
                         help='Add hints to hc.gff no matter the coverage if \
         more than 80%% of introns with high alignment score have coverage=1.')
+
+    adv = parser.add_argument_group('Advanced options for '
+                                    'selectRepresentativeAlignments.py')
+
+    adv.add_argument('--topNperSeed', type=int, default=9999999,
+                     help='Use a maximum of topNperSeed seed children per\
+        miniprot locus. See selectRepresentativeAlignments.py for details.')
+
+    adv.add_argument('--minScoreFraction', type=float, default=0,
+                     help='Use seed children in a locus only if their \
+        score is > seed.score * minScoreFraction. See \
+        selectRepresentativeAlignments.py for details.')
+
+    adv.add_argument('--maxSubFraction', type=float, default=0.8,
+                     help='Maximum CDS coverage of the parent seed by an \
+        alignment in order for the alignment to be considered for spawning a \
+        subseed. See selectRepresentativeAlignments.py for details.')
+
+    adv.add_argument('--minSubCoverage', type=float, default=0.9,
+                     help='Spawn a subseed only if its alignment query \
+        coverage is >= minSubCovoverage. Further, the subseed needs to have \
+        has better average alignment identity than the parent. See \
+        selectRepresentativeAlignments.py for details.')
 
     return parser.parse_args()
 

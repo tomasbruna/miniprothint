@@ -323,7 +323,7 @@ def parseCmd():
                         help='Min CDS overlap of an alignment by a locus seed\
                         to be considered the seed\'s child')
 
-    parser.add_argument('--minScoreFraction', type=float, default=0.9,
+    parser.add_argument('--minScoreFraction', type=float, default=0.5,
                         help='Print seed children in a locus only if their \
                         score is > seed.score * minScoreFraction')
 
