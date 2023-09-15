@@ -84,8 +84,16 @@ def processMiniprotOutput(miniprot, ignoreCoverage, args):
         callScript('print_high_confidence.py',
                    f'{workDir}/miniprothint.gff > {workDir}/hc.gff')
 
+    callScript('selectRepresentativeAlignments.py',
+               f'{miniprot} '
+               f'--topNperSeed 0 '
+               f'--minSubCoverage 2 '
+               f'> {workDir}/miniprot_trainingGenes.gff')
+
     callScript('scorer2gtf.py', f'{miniprot} > {workDir}/miniprot.gtf')
     callScript('scorer2gtf.py', f'{reps} > {workDir}/miniprot_representatives.gtf')
+    callScript('scorer2gtf.py', f'{workDir}/miniprot_trainingGenes.gff > '
+                                f'{workDir}/miniprot_trainingGenes.gtf')
 
 
 def processIntrons(miniprot):
