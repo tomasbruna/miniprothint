@@ -203,11 +203,11 @@ def parseCmd():
     adv = parser.add_argument_group('Advanced options for '
                                     'selectRepresentativeAlignments.py')
 
-    adv.add_argument('--topNperSeed', type=int, default=9999999,
+    adv.add_argument('--topNperSeed', type=int, default=10,
                      help='Use a maximum of topNperSeed seed children per\
         miniprot locus. See selectRepresentativeAlignments.py for details.')
 
-    adv.add_argument('--minScoreFraction', type=float, default=0,
+    adv.add_argument('--minScoreFraction', type=float, default=0.5,
                      help='Use seed children in a locus only if their \
         score is > seed.score * minScoreFraction. See \
         selectRepresentativeAlignments.py for details.')
