@@ -9,6 +9,14 @@ We recommend running [miniprot](https://github.com/lh3/miniprot) and [miniprot b
     miniprot genome.fasta proteins.fasta --aln > miniprot.aln
     miniprot_boundary_scorer -o miniprot_parsed.gff -s blosum62.csv < miniprot.aln
     miniprothint.py miniprot_parsed.gff --workdir miniprothint
+    
+### Running with Apptainer/Singularity
+
+The required tools are available in the [GALBA](https://github.com/Gaius-Augustus/GALBA) container:
+    
+    apptainer exec docker://katharinahoff/galba-notebook:latest miniprot genome.fasta proteins.fasta --aln > miniprot.aln
+    apptainer exec docker://katharinahoff/galba-notebook:latest miniprot_boundary_scorer -o miniprot_parsed.gff -s /opt/miniprot-boundary-scorer/blosum62.csv < miniprot.aln
+    apptainer exec docker://katharinahoff/galba-notebook:latest miniprothint.py miniprot_parsed.gff --workdir miniprothint
 
 ## Outputs
 
